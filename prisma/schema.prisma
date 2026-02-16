@@ -1,0 +1,176 @@
+// Imply Database Schema
+// AI copilot infrastructure for B2B SaaS
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Project model - represents a customer's copilot instance
+model Project {
+  id                  String   @id @default(uuid())
+  name                String
+  apiKey              String   @unique @map("api_key")
+
+  // AI configuration
+  systemPrompt        String   @default("You are a helpful AI assistant.") @map("system_prompt") @db.Text
+  customInstructions  String?  @map("custom_instructions") @db.Text
+  guardrails          Json?    @db.JsonB // Safety rules, content filters
+
+  // Retrieval configuration
+  retrievalConfig     Json     @default("{\"topK\": 5, \"minScore\": 0.7}") @map("retrieval_config") @db.JsonB
+
+  // General configuration
+  config              Json     @default("{}") @db.JsonB // Theme, branding, etc.
+
+  // Timestamps
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  documents           Document[]
+  actions             Action[]
+  conversations       Conversation[]
+
+  @@map("projects")
+  @@index([apiKey])
+}
+
+// Document model - knowledge base documents
+model Document {
+  id            String   @id @default(uuid())
+  projectId     String   @map("project_id")
+
+  // Document metadata
+  filename      String
+  content       String   @db.Text
+  metadata      Json     @default("{}") @db.JsonB // Source, author, tags, etc.
+
+  // Document status
+  enabled       Boolean  @default(true)
+  collection    String?  // Logical grouping (e.g., "help_docs", "api_reference")
+  priority      Int      @default(0) // Higher priority = more relevant
+
+  // Embedding tracking
+  embeddingIds  String[] @map("embedding_ids") // IDs in EmergentDB
+
+  // Processing status
+  status        String   @default("pending") // pending, processing, ready, failed
+  errorMessage  String?  @map("error_message") @db.Text
+
+  // Timestamps
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("documents")
+  @@index([projectId])
+  @@index([projectId, enabled])
+  @@index([projectId, collection])
+  @@index([status])
+}
+
+// Action model - executable actions (tool use)
+model Action {
+  id                    String   @id @default(uuid())
+  projectId             String   @map("project_id")
+
+  // Action definition
+  name                  String   // Internal identifier (e.g., "get_user_info")
+  displayName           String   @map("display_name") // Human-readable name
+  description           String   @db.Text // What the action does
+
+  // HTTP configuration
+  method                String   @default("POST") // GET, POST, PUT, DELETE
+  endpoint              String   @db.Text // API endpoint URL
+  headers               Json     @default("{}") @db.JsonB // Additional headers
+  bodyTemplate          String?  @map("body_template") @db.Text // Request body template
+
+  // Behavior
+  requiresConfirmation  Boolean  @default(false) @map("requires_confirmation")
+  enabled               Boolean  @default(true)
+
+  // Timestamps
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  project               Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  executions            ActionExecution[]
+
+  @@map("actions")
+  @@index([projectId])
+  @@index([projectId, enabled])
+  @@unique([projectId, name])
+}
+
+// ActionExecution model - logs of action executions
+model ActionExecution {
+  id              String   @id @default(uuid())
+  actionId        String   @map("action_id")
+  conversationId  String   @map("conversation_id")
+
+  // Execution details
+  parameters      Json     @db.JsonB // Parameters passed to the action
+  status          String   // pending, success, failed, cancelled
+  response        Json?    @db.JsonB // Response from the API
+
+  // Timestamps
+  executedAt      DateTime @default(now()) @map("executed_at")
+
+  // Relations
+  action          Action       @relation(fields: [actionId], references: [id], onDelete: Cascade)
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@map("action_executions")
+  @@index([actionId])
+  @@index([conversationId])
+  @@index([executedAt])
+}
+
+// Conversation model - chat sessions
+model Conversation {
+  id              String   @id @default(uuid())
+  projectId       String   @map("project_id")
+
+  // Conversation metadata
+  startedAt       DateTime @default(now()) @map("started_at")
+  lastMessageAt   DateTime @default(now()) @map("last_message_at")
+
+  // Relations
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  messages        Message[]
+  actionExecutions ActionExecution[]
+
+  @@map("conversations")
+  @@index([projectId])
+  @@index([projectId, lastMessageAt])
+}
+
+// Message model - individual messages in conversations
+model Message {
+  id              String   @id @default(uuid())
+  conversationId  String   @map("conversation_id")
+
+  // Message content
+  role            String   // user, assistant, system
+  content         String   @db.Text
+
+  // Source attribution (for RAG)
+  sources         Json?    @db.JsonB // Array of {documentId, filename, score}
+
+  // Timestamps
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  // Relations
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+  @@index([conversationId])
+  @@index([conversationId, createdAt])
+}
