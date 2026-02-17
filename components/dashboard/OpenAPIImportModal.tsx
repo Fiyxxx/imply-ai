@@ -242,7 +242,7 @@ export default function OpenAPIImportModal({
                     {c.displayName}
                   </span>
                   <span className="text-xs text-gray-400 truncate max-w-[160px]">
-                    {new URL(c.endpoint).pathname}
+                    {(() => { try { return new URL(c.endpoint).pathname } catch { return c.endpoint } })()}
                   </span>
                 </label>
               ))}
