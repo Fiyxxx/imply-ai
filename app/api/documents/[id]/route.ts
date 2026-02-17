@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { deleteDocumentChunks } from '@/lib/documents'
 import { ImplyError, NotFoundError } from '@/lib/errors'
-import { validateProjectAccess } from '@/lib/auth'
+import { requireProjectAccess } from '@/lib/auth'
 
 function getApiKey(req: NextRequest): string | null {
   return req.headers.get('X-Imply-Project-Key')
@@ -32,7 +32,7 @@ export async function GET(
     const document = await db.document.findUnique({ where: { id } })
     if (!document) throw new NotFoundError('Document')
 
-    await validateProjectAccess(getApiKey(req), document.projectId)
+    await requireProjectAccess(getApiKey(req), document.projectId)
 
     return NextResponse.json({ data: document })
 
@@ -51,7 +51,7 @@ export async function DELETE(
     const document = await db.document.findUnique({ where: { id } })
     if (!document) throw new NotFoundError('Document')
 
-    await validateProjectAccess(getApiKey(req), document.projectId)
+    await requireProjectAccess(getApiKey(req), document.projectId)
 
     // Delete chunks from pgvector (cascades via FK, but explicit for clarity)
     await deleteDocumentChunks(id)

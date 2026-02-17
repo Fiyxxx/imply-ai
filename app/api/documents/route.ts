@@ -3,7 +3,7 @@ import { ZodError, z } from 'zod'
 import { db } from '@/lib/db'
 import { extractText, chunkAndEmbed } from '@/lib/documents'
 import { ImplyError, ValidationError } from '@/lib/errors'
-import { validateProjectAccess } from '@/lib/auth'
+import { requireProjectAccess } from '@/lib/auth'
 import { DocumentStatus } from '@prisma/client'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       throw new ValidationError('projectId is required')
     }
 
-    await validateProjectAccess(getApiKey(req), projectId)
+    await requireProjectAccess(getApiKey(req), projectId)
 
     const filename = file.name
     const ext = '.' + (filename.split('.').pop()?.toLowerCase() ?? '')
@@ -121,7 +121,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       Object.fromEntries(req.nextUrl.searchParams)
     )
 
-    await validateProjectAccess(getApiKey(req), params.projectId)
+    await requireProjectAccess(getApiKey(req), params.projectId)
 
     const documents = await db.document.findMany({
       where: { projectId: params.projectId },
