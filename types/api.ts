@@ -24,3 +24,36 @@ export interface ChatResponse {
   sources: DocumentSource[]
   action?: ActionSuggestion
 }
+
+export interface ActionParameter {
+  name:        string
+  type:        'string' | 'number' | 'boolean'
+  description: string
+  required:    boolean
+}
+
+export interface ActionItem {
+  id:                   string
+  name:                 string
+  displayName:          string
+  description:          string
+  method:               'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+  endpoint:             string
+  parameters:           ActionParameter[]
+  requiresConfirmation: boolean
+  enabled:              boolean
+  createdAt:            string
+}
+
+export interface ActionDetail extends ActionItem {
+  headers: Record<string, string>
+}
+
+export interface CandidateAction {
+  name:        string
+  displayName: string
+  description: string
+  method:      'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+  endpoint:    string
+  parameters:  ActionParameter[]
+}
