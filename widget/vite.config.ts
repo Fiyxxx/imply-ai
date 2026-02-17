@@ -11,7 +11,7 @@ export default defineConfig({
       fileName: 'widget',
       formats:  ['iife'],
     },
-    outDir:          '../../public',
+    outDir:          '../public',
     emptyOutDir:     false,
     minify:          true,
     rollupOptions: {

@@ -217,6 +217,7 @@ export type StreamEvent =
   | { type: 'sources'; data: DocumentSource[] }
   | { type: 'delta'; text: string }
   | { type: 'done'; messageId: string; conversationId: string }
+  | { type: 'action'; action: { kind: 'http'; name: string; requiresConfirmation: boolean } }
   | { type: 'error'; message: string }
 
 /**
@@ -299,7 +300,23 @@ export async function* retrieveAndGenerateStream(
     yield { type: 'delta', text: delta }
   }
 
-  // 5. Persist to DB after stream completes
+  // 5. Emit action event if the LLM suggested one
+  const parsedAction = parseActionFromResponse(fullText)
+  if (parsedAction) {
+    const matchedAction = project.actions.find(a => a.name === parsedAction.actionName)
+    if (matchedAction) {
+      yield {
+        type: 'action',
+        action: {
+          kind: 'http',
+          name: matchedAction.name,
+          requiresConfirmation: matchedAction.requiresConfirmation,
+        },
+      }
+    }
+  }
+
+  // 6. Persist to DB after stream completes
   // conversationId is always provided by the API route (which creates one if needed)
   if (!conversationId) {
     yield { type: 'error', message: 'Missing conversationId — this is a server bug' }
