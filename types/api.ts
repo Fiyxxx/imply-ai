@@ -1,11 +1,6 @@
-export interface APIResponse<T> {
-  data?: T
-  error?: {
-    message: string
-    code: string
-    metadata?: Record<string, unknown>
-  }
-}
+export type APIResponse<T> =
+  | { data: T; error?: never }
+  | { data?: never; error: { message: string; code: string; metadata?: Record<string, unknown> } }
 
 export interface DocumentSource {
   documentId: string
