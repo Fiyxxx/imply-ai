@@ -52,3 +52,6 @@ prisma/migrations/*_*
 .turbo
 
 /app/generated/prisma
+
+# Local widget smoke test
+/public/test-widget.html
