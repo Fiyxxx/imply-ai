@@ -35,7 +35,26 @@ export const CreateActionSchema = z.object({
   displayName:          z.string().min(1).max(100),
   description:          z.string().min(1).max(500),
   method:               z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']),
-  endpoint:             z.string().url(),
+  endpoint:             z.string().url().refine(
+    (url) => {
+      try {
+        const { hostname } = new URL(url)
+        const lower = hostname.toLowerCase()
+        return (
+          lower !== 'localhost' &&
+          !lower.match(/^127\./) &&
+          !lower.match(/^10\./) &&
+          !lower.match(/^172\.(1[6-9]|2\d|3[01])\./) &&
+          !lower.match(/^192\.168\./) &&
+          lower !== '0.0.0.0' &&
+          lower !== '::1'
+        )
+      } catch {
+        return false
+      }
+    },
+    { message: 'Localhost and private network endpoints are not allowed' }
+  ),
   headers:              z.record(z.string(), z.string()).default({}),
   parameters:           z.array(ActionParameterSchema).default([]),
   requiresConfirmation: z.boolean().default(false),

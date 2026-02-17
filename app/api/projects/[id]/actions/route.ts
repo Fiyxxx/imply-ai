@@ -12,6 +12,12 @@ function errorResponse(error: unknown): NextResponse {
       { status: 400 }
     )
   }
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+    return NextResponse.json(
+      { error: { message: 'An action with that name already exists in this project', code: 'CONFLICT' } },
+      { status: 409 }
+    )
+  }
   if (error instanceof ImplyError) {
     return NextResponse.json(
       { error: { message: error.message, code: error.code, metadata: error.metadata } },
