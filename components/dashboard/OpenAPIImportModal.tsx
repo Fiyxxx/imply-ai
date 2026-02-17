@@ -2,6 +2,7 @@
 
 import { useState, type JSX } from 'react'
 import type { CandidateAction, APIResponse } from '@/types/api'
+import { HTTP_METHOD_COLORS } from '@/lib/utils'
 
 type Step = 'source' | 'select' | 'importing'
 
@@ -15,14 +16,6 @@ interface OpenAPIImportModalProps {
   projectId: string
   onClose:   () => void
   onDone:    () => void
-}
-
-const METHOD_COLORS: Record<string, string> = {
-  GET:    'bg-emerald-100 text-emerald-700',
-  POST:   'bg-blue-100 text-blue-700',
-  PUT:    'bg-amber-100 text-amber-700',
-  PATCH:  'bg-purple-100 text-purple-700',
-  DELETE: 'bg-red-100 text-red-700',
 }
 
 export default function OpenAPIImportModal({
@@ -123,7 +116,9 @@ export default function OpenAPIImportModal({
       {/* Backdrop — not closeable while importing */}
       <div
         className="fixed inset-0 z-40 bg-black/30"
-        onClick={step !== 'importing' ? onClose : undefined}
+        onClick={step !== 'importing'
+          ? (e) => { if (e.target === e.currentTarget) onClose() }
+          : undefined}
       />
 
       {/* Modal */}
@@ -220,7 +215,7 @@ export default function OpenAPIImportModal({
             <div className="max-h-72 overflow-y-auto space-y-1 -mx-2 px-2">
               {candidates.map((c, i) => (
                 <label
-                  key={i}
+                  key={c.name}
                   className="flex items-center gap-3 rounded-lg px-3 py-2 cursor-pointer hover:bg-[var(--color-shell-100)] transition-colors"
                 >
                   <input
@@ -234,7 +229,7 @@ export default function OpenAPIImportModal({
                     className="h-4 w-4 rounded border-gray-300 text-indigo-600 flex-shrink-0"
                   />
                   <span
-                    className={`text-xs font-mono font-semibold px-1.5 py-0.5 rounded flex-shrink-0 ${METHOD_COLORS[c.method] ?? ''}`}
+                    className={`text-xs font-mono font-semibold px-1.5 py-0.5 rounded flex-shrink-0 ${HTTP_METHOD_COLORS[c.method] ?? ''}`}
                   >
                     {c.method}
                   </span>
@@ -264,8 +259,8 @@ export default function OpenAPIImportModal({
         {step === 'importing' && (
           <div className="px-6 py-5 space-y-3">
             <div className="max-h-72 overflow-y-auto space-y-1">
-              {results.map((r, i) => (
-                <div key={i} className="flex items-center gap-3 rounded-lg px-3 py-2">
+              {results.map((r) => (
+                <div key={r.candidate.name} className="flex items-center gap-3 rounded-lg px-3 py-2">
                   {r.status === 'pending' && (
                     <svg className="h-4 w-4 animate-spin text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
