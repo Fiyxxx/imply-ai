@@ -1,3 +1,6 @@
+packages:
+  - 'widget'
+
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver
