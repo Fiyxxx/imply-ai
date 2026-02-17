@@ -102,4 +102,58 @@ describe('parseOpenAPISpec', () => {
     expect(result).toHaveLength(1)
     expect(result[0]?.method).toBe('GET')
   })
+
+  it('excludes header parameters from extracted parameters', () => {
+    const spec = {
+      ...MINIMAL_SPEC,
+      paths: {
+        '/orders': {
+          get: {
+            operationId: 'list_orders',
+            summary: 'List orders',
+            parameters: [
+              { name: 'X-Tenant-Id', in: 'header', required: true, schema: { type: 'string' }, description: 'Tenant header' },
+              { name: 'page', in: 'query', required: false, schema: { type: 'number' }, description: 'Page number' },
+            ]
+          }
+        }
+      }
+    }
+    const result = parseOpenAPISpec(spec, 'https://api.example.com')
+    expect(result).toHaveLength(1)
+    // Should only have the query param, not the header param
+    expect(result[0]?.parameters).toHaveLength(1)
+    expect(result[0]?.parameters[0]?.name).toBe('page')
+  })
+
+  it('falls back description through summary then name when description is absent', () => {
+    const spec = {
+      ...MINIMAL_SPEC,
+      paths: {
+        '/ping': {
+          get: {
+            operationId: 'ping',
+            // no description field
+            summary: 'Health check'
+          }
+        }
+      }
+    }
+    const result = parseOpenAPISpec(spec, 'https://api.example.com')
+    expect(result[0]?.description).toBe('Health check') // falls back to summary
+
+    const specNoSummary = {
+      ...MINIMAL_SPEC,
+      paths: {
+        '/ping': {
+          get: {
+            operationId: 'ping_bare'
+            // no description, no summary
+          }
+        }
+      }
+    }
+    const result2 = parseOpenAPISpec(specNoSummary, 'https://api.example.com')
+    expect(result2[0]?.description).toBe('ping_bare') // falls back to name
+  })
 })

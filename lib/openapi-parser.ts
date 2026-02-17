@@ -38,8 +38,8 @@ function slugify(text: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '_')
     .replace(/^[^a-z]+/, '')
-    .replace(/_+$/, '')
     .slice(0, 64)
+    .replace(/_+$/, '')
 }
 
 function resolveType(raw: string | undefined): 'string' | 'number' | 'boolean' {
