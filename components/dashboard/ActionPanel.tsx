@@ -6,8 +6,8 @@ import type { ActionDetail, ActionParameter } from '@/types/api'
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 type ParamType = 'string' | 'number' | 'boolean'
 
-interface KVRow { key: string; value: string }
-interface ParamRow { name: string; type: ParamType; description: string; required: boolean }
+interface KVRow { id: string; key: string; value: string }
+interface ParamRow { id: string; name: string; type: ParamType; description: string; required: boolean }
 
 interface ActionPanelProps {
   projectId:   string
@@ -35,10 +35,10 @@ export default function ActionPanel({ projectId, action, onClose, onSaved }: Act
   const [method,               setMethod]               = useState<HttpMethod>(action?.method ?? 'POST')
   const [endpoint,             setEndpoint]             = useState(action?.endpoint ?? '')
   const [headers,              setHeaders]              = useState<KVRow[]>(
-    Object.entries(action?.headers ?? {}).map(([key, value]) => ({ key, value }))
+    Object.entries(action?.headers ?? {}).map(([key, value]) => ({ id: crypto.randomUUID(), key, value }))
   )
   const [parameters,           setParameters]           = useState<ParamRow[]>(
-    (action?.parameters ?? []).map(p => ({ name: p.name, type: p.type as ParamType, description: p.description, required: p.required }))
+    (action?.parameters ?? []).map(p => ({ id: crypto.randomUUID(), name: p.name, type: p.type as ParamType, description: p.description, required: p.required }))
   )
   const [requiresConfirmation, setRequiresConfirmation] = useState(action?.requiresConfirmation ?? false)
   const [enabled,              setEnabled]              = useState(action?.enabled ?? true)
@@ -99,14 +99,14 @@ export default function ActionPanel({ projectId, action, onClose, onSaved }: Act
     }
   }, [action, displayName, name, description, method, endpoint, headers, parameters, requiresConfirmation, enabled, isEdit, projectId, onSaved])
 
-  function addHeader(): void { setHeaders(prev => [...prev, { key: '', value: '' }]) }
+  function addHeader(): void { setHeaders(prev => [...prev, { id: crypto.randomUUID(), key: '', value: '' }]) }
   function removeHeader(i: number): void { setHeaders(prev => prev.filter((_, idx) => idx !== i)) }
   function updateHeader(i: number, field: 'key' | 'value', val: string): void {
     setHeaders(prev => prev.map((row, idx) => idx === i ? { ...row, [field]: val } : row))
   }
 
   function addParam(): void {
-    setParameters(prev => [...prev, { name: '', type: 'string', description: '', required: false }])
+    setParameters(prev => [...prev, { id: crypto.randomUUID(), name: '', type: 'string', description: '', required: false }])
   }
   function removeParam(i: number): void { setParameters(prev => prev.filter((_, idx) => idx !== i)) }
   function updateParam<K extends keyof ParamRow>(i: number, field: K, val: ParamRow[K]): void {
@@ -231,7 +231,7 @@ export default function ActionPanel({ projectId, action, onClose, onSaved }: Act
             </h3>
             <div className="space-y-2">
               {headers.map((row, i) => (
-                <div key={i} className="flex gap-2 items-center">
+                <div key={row.id} className="flex gap-2 items-center">
                   <input
                     className={`${inputClass} flex-1`}
                     value={row.key}
@@ -281,7 +281,7 @@ export default function ActionPanel({ projectId, action, onClose, onSaved }: Act
                 </div>
               )}
               {parameters.map((row, i) => (
-                <div key={i} className="grid grid-cols-[1fr_100px_1fr_auto_auto] gap-2 items-center">
+                <div key={row.id} className="grid grid-cols-[1fr_100px_1fr_auto_auto] gap-2 items-center">
                   <input
                     className={inputClass}
                     value={row.name}
