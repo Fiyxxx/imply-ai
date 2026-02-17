@@ -5,15 +5,41 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// Connection URL is configured via DATABASE_URL env var in prisma.config.ts
 datasource db {
   provider = "postgresql"
+}
+
+enum DocumentStatus {
+  processing
+  indexed
+  failed
+
+  @@map("document_status")
+}
+
+enum HttpMethod {
+  GET
+  POST
+  PUT
+  PATCH
+  DELETE
+
+  @@map("http_method")
+}
+
+enum MessageRole {
+  user
+  assistant
+
+  @@map("message_role")
 }
 
 // Project model - represents a customer's copilot instance
 model Project {
   id                  String   @id @default(uuid())
   name                String
-  apiKey              String   @unique @map("api_key")
+  apiKey              String   @unique @map("api_key") // NOTE: Hash before storing, compare hashes when authenticating
 
   // AI configuration
   systemPrompt        String   @default("You are a helpful AI assistant.") @map("system_prompt") @db.Text
@@ -36,71 +62,70 @@ model Project {
   conversations       Conversation[]
 
   @@map("projects")
-  @@index([apiKey])
 }
 
 // Document model - knowledge base documents
 model Document {
-  id            String   @id @default(uuid())
-  projectId     String   @map("project_id")
+  id            String         @id @default(uuid())
+  projectId     String         @map("project_id")
 
   // Document metadata
   filename      String
-  content       String   @db.Text
-  metadata      Json     @default("{}") @db.JsonB // Source, author, tags, etc.
+  content       String         @db.Text
+  metadata      Json           @default("{}") @db.JsonB // Source, author, tags, etc.
 
   // Document status
-  enabled       Boolean  @default(true)
-  collection    String?  // Logical grouping (e.g., "help_docs", "api_reference")
-  priority      Int      @default(0) // Higher priority = more relevant
+  enabled       Boolean        @default(true)
+  collection    String?        // Logical grouping (e.g., "help_docs", "api_reference")
+  priority      Int            @default(0) // Higher priority = more relevant
 
   // Embedding tracking
-  embeddingIds  String[] @map("embedding_ids") // IDs in EmergentDB
+  embeddingIds  String[]       @map("embedding_ids") // IDs in EmergentDB
 
   // Processing status
-  status        String   @default("pending") // pending, processing, ready, failed
-  errorMessage  String?  @map("error_message") @db.Text
+  status        DocumentStatus @default(processing)
+  errorMessage  String?        @map("error_message") @db.Text
 
   // Timestamps
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
 
   // Relations
-  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project       Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("documents")
   @@index([projectId])
   @@index([projectId, enabled])
   @@index([projectId, collection])
-  @@index([status])
+  @@index([projectId, status])
 }
 
 // Action model - executable actions (tool use)
 model Action {
-  id                    String   @id @default(uuid())
-  projectId             String   @map("project_id")
+  id                    String      @id @default(uuid())
+  projectId             String      @map("project_id")
 
   // Action definition
-  name                  String   // Internal identifier (e.g., "get_user_info")
-  displayName           String   @map("display_name") // Human-readable name
-  description           String   @db.Text // What the action does
+  name                  String      // Internal identifier (e.g., "get_user_info")
+  displayName           String      @map("display_name") // Human-readable name
+  description           String      @db.Text // What the action does
 
   // HTTP configuration
-  method                String   @default("POST") // GET, POST, PUT, DELETE
-  endpoint              String   @db.Text // API endpoint URL
-  headers               Json     @default("{}") @db.JsonB // Additional headers
-  bodyTemplate          String?  @map("body_template") @db.Text // Request body template
+  method                HttpMethod  @default(POST)
+  endpoint              String      @db.Text // API endpoint URL
+  headers               Json        @default("{}") @db.JsonB // NOTE: Contains auth credentials - avoid storing plaintext secrets
+  bodyTemplate          String?     @map("body_template") @db.Text // Request body template
 
   // Behavior
-  requiresConfirmation  Boolean  @default(false) @map("requires_confirmation")
-  enabled               Boolean  @default(true)
+  requiresConfirmation  Boolean     @default(false) @map("requires_confirmation")
+  enabled               Boolean     @default(true)
 
   // Timestamps
-  createdAt             DateTime @default(now()) @map("created_at")
-  updatedAt             DateTime @updatedAt @map("updated_at")
+  createdAt             DateTime    @default(now()) @map("created_at")
+  updatedAt             DateTime    @updatedAt @map("updated_at")
 
   // Relations
-  project               Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project               Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
   executions            ActionExecution[]
 
   @@map("actions")
@@ -111,17 +136,17 @@ model Action {
 
 // ActionExecution model - logs of action executions
 model ActionExecution {
-  id              String   @id @default(uuid())
-  actionId        String   @map("action_id")
-  conversationId  String   @map("conversation_id")
+  id              String       @id @default(uuid())
+  actionId        String       @map("action_id")
+  conversationId  String       @map("conversation_id")
 
   // Execution details
-  parameters      Json     @db.JsonB // Parameters passed to the action
-  status          String   // pending, success, failed, cancelled
-  response        Json?    @db.JsonB // Response from the API
+  parameters      Json         @db.JsonB // Parameters passed to the action
+  status          String       // pending, success, failed, cancelled
+  response        Json?        @db.JsonB // Response from the API
 
   // Timestamps
-  executedAt      DateTime @default(now()) @map("executed_at")
+  executedAt      DateTime     @default(now()) @map("executed_at")
 
   // Relations
   action          Action       @relation(fields: [actionId], references: [id], onDelete: Cascade)
@@ -131,6 +156,7 @@ model ActionExecution {
   @@index([actionId])
   @@index([conversationId])
   @@index([executedAt])
+  @@index([actionId, executedAt])
 }
 
 // Conversation model - chat sessions
@@ -140,7 +166,7 @@ model Conversation {
 
   // Conversation metadata
   startedAt       DateTime @default(now()) @map("started_at")
-  lastMessageAt   DateTime @default(now()) @map("last_message_at")
+  lastMessageAt   DateTime @default(now()) @map("last_message_at") // Must be manually updated on new message
 
   // Relations
   project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -154,18 +180,18 @@ model Conversation {
 
 // Message model - individual messages in conversations
 model Message {
-  id              String   @id @default(uuid())
-  conversationId  String   @map("conversation_id")
+  id              String      @id @default(uuid())
+  conversationId  String      @map("conversation_id")
 
   // Message content
-  role            String   // user, assistant, system
-  content         String   @db.Text
+  role            MessageRole
+  content         String      @db.Text
 
   // Source attribution (for RAG)
-  sources         Json?    @db.JsonB // Array of {documentId, filename, score}
+  sources         Json?       @db.JsonB // Array of {documentId, filename, score}
 
   // Timestamps
-  createdAt       DateTime @default(now()) @map("created_at")
+  createdAt       DateTime    @default(now()) @map("created_at")
 
   // Relations
   conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
