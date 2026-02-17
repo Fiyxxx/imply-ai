@@ -148,7 +148,7 @@ export default function Sidebar(): JSX.Element {
                   href={href}
                   className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
                     isActive
-                      ? 'bg-indigo-50 text-indigo-700 font-medium'
+                      ? 'bg-gray-900 text-white font-medium'
                       : 'text-gray-600 hover:bg-[var(--color-shell-200)] hover:text-gray-900'
                   }`}
                 >

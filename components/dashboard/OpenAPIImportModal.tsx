@@ -107,7 +107,7 @@ export default function OpenAPIImportModal({
   }
 
   const inputClass =
-    'w-full rounded-lg border border-[var(--color-shell-200)] bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500'
+    'w-full rounded-lg border border-[var(--color-shell-200)] bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900'
 
   const isImportDone = results.length > 0 && results.every(r => r.status !== 'pending')
 
@@ -206,7 +206,7 @@ export default function OpenAPIImportModal({
                   type="checkbox"
                   checked={selected.size === candidates.length}
                   onChange={e => toggleAll(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 text-indigo-600"
+                  className="h-4 w-4 rounded border-gray-300 accent-gray-900"
                 />
                 Select all
               </label>
@@ -226,7 +226,7 @@ export default function OpenAPIImportModal({
                       e.target.checked ? next.add(i) : next.delete(i)
                       setSelected(next)
                     }}
-                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 flex-shrink-0"
+                    className="h-4 w-4 rounded border-gray-300 accent-gray-900 flex-shrink-0"
                   />
                   <span
                     className={`text-xs font-mono font-semibold px-1.5 py-0.5 rounded flex-shrink-0 ${HTTP_METHOD_COLORS[c.method] ?? ''}`}

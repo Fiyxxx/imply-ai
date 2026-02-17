@@ -198,7 +198,7 @@ export default function ActionsPage(): JSX.Element {
                         disabled={togglingId === action.id}
                         aria-label={action.enabled ? 'Disable action' : 'Enable action'}
                         className={`inline-flex h-5 w-9 items-center rounded-full transition-colors disabled:opacity-50 ${
-                          action.enabled ? 'bg-indigo-600' : 'bg-gray-200'
+                          action.enabled ? 'bg-gray-900' : 'bg-gray-200'
                         }`}
                       >
                         <span

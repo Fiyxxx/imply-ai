@@ -291,7 +291,7 @@ export default function ProjectSettingsPage(): JSX.Element {
                 value={form.name}
                 onChange={(e) => handleFieldChange('name', e.target.value)}
                 placeholder="My SaaS Copilot"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 shadow-sm transition focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
               />
             </div>
 
@@ -342,7 +342,7 @@ export default function ProjectSettingsPage(): JSX.Element {
                 value={form.systemPrompt}
                 onChange={(e) => handleFieldChange('systemPrompt', e.target.value)}
                 placeholder="You are a helpful AI assistant for Acme Inc. You help users navigate our product, answer questions about our features, and resolve common issues. Always be concise, friendly, and professional."
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 shadow-sm transition focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
               />
               <p className="mt-1 text-xs text-gray-400">
                 The system prompt shapes your AI copilot's personality, tone, and behavior.
@@ -378,7 +378,7 @@ export default function ProjectSettingsPage(): JSX.Element {
                 onChange={(e) =>
                   handleFieldChange('topK', parseInt(e.target.value, 10) || 1)
                 }
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm transition focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
               />
               <p className="mt-1 text-xs text-gray-400">
                 Number of document chunks retrieved per query (1–20).
@@ -403,7 +403,7 @@ export default function ProjectSettingsPage(): JSX.Element {
                 onChange={(e) =>
                   handleFieldChange('minScore', parseFloat(e.target.value) || 0)
                 }
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm transition focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
               />
               <p className="mt-1 text-xs text-gray-400">
                 Chunks with a similarity score below this threshold are excluded (0–1).
@@ -417,7 +417,7 @@ export default function ProjectSettingsPage(): JSX.Element {
           <button
             type="submit"
             disabled={saveState.status === 'saving'}
-            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saveState.status === 'saving' && (
               <svg

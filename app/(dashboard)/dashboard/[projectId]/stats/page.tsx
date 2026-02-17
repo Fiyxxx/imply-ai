@@ -28,7 +28,7 @@ function Spinner(): JSX.Element {
   return (
     <div className="flex items-center justify-center py-12">
       <svg
-        className="h-8 w-8 animate-spin text-indigo-600"
+        className="h-8 w-8 animate-spin text-gray-600"
         fill="none"
         viewBox="0 0 24 24"
       >
@@ -63,7 +63,7 @@ function StatCard({ label, value, subtext, loading = false }: StatCardProps): JS
       {loading ? (
         <div className="flex items-center justify-center py-4">
           <svg
-            className="h-5 w-5 animate-spin text-indigo-600"
+            className="h-5 w-5 animate-spin text-gray-600"
             fill="none"
             viewBox="0 0 24 24"
           >

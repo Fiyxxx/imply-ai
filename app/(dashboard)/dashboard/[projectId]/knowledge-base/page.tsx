@@ -118,7 +118,7 @@ export default function DocumentsPage(): JSX.Element {
         {loading ? (
           <div className="flex items-center justify-center px-6 py-16">
             <svg
-              className="h-6 w-6 animate-spin text-indigo-600"
+              className="h-6 w-6 animate-spin text-gray-600"
               fill="none"
               viewBox="0 0 24 24"
             >
@@ -144,16 +144,16 @@ export default function DocumentsPage(): JSX.Element {
             <button
               type="button"
               onClick={() => void fetchDocuments()}
-              className="mt-4 text-sm font-medium text-indigo-600 hover:text-indigo-700"
+              className="mt-4 text-sm font-medium text-gray-700 hover:text-gray-900 underline"
             >
               Try again
             </button>
           </div>
         ) : documents.length === 0 ? (
           <div className="px-6 py-16 text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-shell-200)]">
               <svg
-                className="h-6 w-6 text-indigo-600"
+                className="h-6 w-6 text-gray-500"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"

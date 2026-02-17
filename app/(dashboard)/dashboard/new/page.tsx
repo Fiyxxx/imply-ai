@@ -81,7 +81,7 @@ export default function NewProjectPage(): JSX.Element {
               placeholder="e.g. My SaaS Copilot"
               required
               disabled={isSubmitting}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 shadow-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
             />
           </div>
 
@@ -94,7 +94,7 @@ export default function NewProjectPage(): JSX.Element {
           <button
             type="submit"
             disabled={isSubmitting || name.trim().length === 0}
-            className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-opacity"
           >
             {isSubmitting ? 'Creating...' : 'Create Project'}
           </button>

@@ -127,8 +127,8 @@ export default function DocumentUploadForm({
         className={[
           'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-6 py-10 text-center transition-colors',
           isDragging
-            ? 'border-indigo-500 bg-indigo-50'
-            : 'border-gray-300 hover:border-indigo-400 hover:bg-gray-50',
+            ? 'border-gray-900 bg-[var(--color-shell-100)]'
+            : 'border-gray-300 hover:border-gray-500 hover:bg-[var(--color-shell-50)]',
         ].join(' ')}
       >
         <svg
@@ -165,7 +165,7 @@ export default function DocumentUploadForm({
         <div className="mt-4 flex items-center justify-between rounded-lg bg-gray-50 px-4 py-3">
           <div className="flex min-w-0 items-center gap-3">
             <svg
-              className="h-5 w-5 shrink-0 text-indigo-500"
+              className="h-5 w-5 shrink-0 text-gray-500"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -184,7 +184,7 @@ export default function DocumentUploadForm({
 
           <div className="ml-4 flex shrink-0 items-center gap-2">
             {state.type === 'uploading' ? (
-              <span className="flex items-center gap-2 text-sm text-indigo-600">
+              <span className="flex items-center gap-2 text-sm text-gray-500">
                 <svg
                   className="h-4 w-4 animate-spin"
                   fill="none"
@@ -218,7 +218,7 @@ export default function DocumentUploadForm({
                 <button
                   type="button"
                   onClick={() => void handleUpload()}
-                  className="rounded-lg bg-indigo-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                  className="rounded-lg bg-gray-900 px-4 py-1.5 text-sm font-medium text-white hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 transition-opacity"
                 >
                   Upload
                 </button>

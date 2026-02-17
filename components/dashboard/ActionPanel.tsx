@@ -113,7 +113,7 @@ export default function ActionPanel({ projectId, action, onClose, onSaved }: Act
     setParameters(prev => prev.map((row, idx) => idx === i ? { ...row, [field]: val } : row))
   }
 
-  const inputClass = 'w-full rounded-lg border border-[var(--color-shell-200)] bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500'
+  const inputClass = 'w-full rounded-lg border border-[var(--color-shell-200)] bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900'
   const labelClass = 'block text-xs font-medium text-gray-600 mb-1'
 
   return (
@@ -256,7 +256,7 @@ export default function ActionPanel({ projectId, action, onClose, onSaved }: Act
               ))}
               <button
                 onClick={addHeader}
-                className="text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
+                className="text-xs font-medium text-gray-700 hover:text-gray-900 transition-colors"
               >
                 + Add header
               </button>
@@ -307,7 +307,7 @@ export default function ActionPanel({ projectId, action, onClose, onSaved }: Act
                     type="checkbox"
                     checked={row.required}
                     onChange={e => updateParam(i, 'required', e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-indigo-600"
+                    className="h-4 w-4 rounded border-gray-300 accent-gray-900"
                   />
                   <button
                     onClick={() => removeParam(i)}
@@ -321,7 +321,7 @@ export default function ActionPanel({ projectId, action, onClose, onSaved }: Act
               ))}
               <button
                 onClick={addParam}
-                className="text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
+                className="text-xs font-medium text-gray-700 hover:text-gray-900 transition-colors"
               >
                 + Add parameter
               </button>
@@ -357,7 +357,7 @@ export default function ActionPanel({ projectId, action, onClose, onSaved }: Act
                     type="checkbox"
                     checked={checked}
                     onChange={e => onChange(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 rounded border-gray-300 text-indigo-600"
+                    className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-gray-900"
                   />
                   <div>
                     <p className="text-sm font-medium text-gray-800">{label}</p>

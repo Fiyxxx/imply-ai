@@ -122,12 +122,12 @@ export default function ProjectSwitcher(): JSX.Element {
                   type="button"
                   onClick={() => handleProjectClick(project.id)}
                   className={`w-full px-3 py-2 text-sm cursor-pointer hover:bg-[var(--color-shell-100)] flex items-center justify-between transition-colors ${
-                    isActive ? 'text-indigo-600 font-medium' : 'text-gray-700'
+                    isActive ? 'text-gray-900 font-semibold' : 'text-gray-700'
                   }`}
                 >
                   <span className="truncate">{project.name}</span>
                   {isActive && (
-                    <span className="h-2 w-2 rounded-full bg-indigo-600 flex-shrink-0 ml-2" />
+                    <span className="h-2 w-2 rounded-full bg-gray-900 flex-shrink-0 ml-2" />
                   )}
                 </button>
               )
@@ -138,7 +138,7 @@ export default function ProjectSwitcher(): JSX.Element {
             <button
               type="button"
               onClick={handleNewProject}
-              className="w-full px-3 py-2 text-sm text-indigo-600 font-medium flex items-center gap-2 cursor-pointer hover:bg-indigo-50 transition-colors"
+              className="w-full px-3 py-2 text-sm text-gray-900 font-medium flex items-center gap-2 cursor-pointer hover:bg-[var(--color-shell-200)] transition-colors"
             >
               <svg
                 className="h-4 w-4 flex-shrink-0"
