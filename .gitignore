@@ -50,3 +50,5 @@ prisma/migrations/*_*
 
 # Testing
 .turbo
+
+/app/generated/prisma

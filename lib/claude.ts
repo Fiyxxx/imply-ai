@@ -1,7 +1,7 @@
-import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
 import { ClaudeAPIError } from './errors'
 
-const MODEL = 'claude-sonnet-4-5-20250929'
+const MODEL = 'gpt-5'
 const MAX_TOKENS = 1024
 
 export interface ActionDescriptor {
@@ -51,15 +51,15 @@ export function buildPrompt(
 }
 
 export class ClaudeClient {
-  private _anthropic: Anthropic | null = null
+  private _openai: OpenAI | null = null
 
-  private getClient(): Anthropic {
-    if (!this._anthropic) {
-      this._anthropic = new Anthropic({
-        apiKey: process.env.ANTHROPIC_API_KEY
+  private getClient(): OpenAI {
+    if (!this._openai) {
+      this._openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY
       })
     }
-    return this._anthropic
+    return this._openai
   }
 
   async chat(
@@ -72,25 +72,26 @@ export class ClaudeClient {
     try {
       const prompt = buildPrompt(systemPrompt, context, userMessage, availableActions)
 
-      const messages: Anthropic.MessageParam[] = [
-        ...history.map(m => ({ role: m.role, content: m.content } as Anthropic.MessageParam)),
+      const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+        { role: 'system', content: systemPrompt },
+        ...history.map(m => ({ role: m.role, content: m.content }) satisfies OpenAI.Chat.ChatCompletionMessageParam),
         { role: 'user', content: prompt }
       ]
 
-      const response = await this.getClient().messages.create({
+      const response = await this.getClient().chat.completions.create({
         model: MODEL,
         max_tokens: MAX_TOKENS,
         messages
       })
 
-      const textBlock = response.content.find(c => c.type === 'text')
-      if (!textBlock || textBlock.type !== 'text') {
-        throw new ClaudeAPIError('No text content in response', 500)
+      const content = response.choices[0]?.message?.content
+      if (!content) {
+        throw new ClaudeAPIError('No content in response', 500)
       }
 
-      return textBlock.text
+      return content
     } catch (error) {
-      if (error instanceof Anthropic.APIError) {
+      if (error instanceof OpenAI.APIError) {
         throw new ClaudeAPIError(error.message, error.status ?? 500)
       }
       if (error instanceof ClaudeAPIError) {
@@ -110,27 +111,27 @@ export class ClaudeClient {
     try {
       const prompt = buildPrompt(systemPrompt, context, userMessage, availableActions)
 
-      const messages: Anthropic.MessageParam[] = [
-        ...history.map(m => ({ role: m.role, content: m.content } as Anthropic.MessageParam)),
+      const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+        { role: 'system', content: systemPrompt },
+        ...history.map(m => ({ role: m.role, content: m.content }) satisfies OpenAI.Chat.ChatCompletionMessageParam),
         { role: 'user', content: prompt }
       ]
 
-      const stream = this.getClient().messages.stream({
+      const stream = await this.getClient().chat.completions.create({
         model: MODEL,
         max_tokens: MAX_TOKENS,
-        messages
+        messages,
+        stream: true
       })
 
-      for await (const event of stream) {
-        if (
-          event.type === 'content_block_delta' &&
-          event.delta.type === 'text_delta'
-        ) {
-          yield event.delta.text
+      for await (const chunk of stream) {
+        const delta = chunk.choices[0]?.delta?.content
+        if (delta) {
+          yield delta
         }
       }
     } catch (error) {
-      if (error instanceof Anthropic.APIError) {
+      if (error instanceof OpenAI.APIError) {
         throw new ClaudeAPIError(error.message, error.status ?? 500)
       }
       if (error instanceof ClaudeAPIError) {
