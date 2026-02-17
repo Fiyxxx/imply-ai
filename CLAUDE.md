@@ -755,6 +755,12 @@ export interface APIResponse<T> {
 
 ## 8. Database Schema
 
+### Critical: HNSW Vector Index Protection
+
+The `document_chunks_embedding_idx` HNSW index (created in migration `20260217052708_add_pgvector_chunks`) is **not tracked by Prisma** because Prisma does not understand custom index types like `USING hnsw`. As a result, **Prisma will include `DROP INDEX "document_chunks_embedding_idx"` in any migration it generates**.
+
+**Before applying any Prisma migration, always check the SQL and remove any `DROP INDEX "document_chunks_embedding_idx"` line.**
+
 ### Prisma Best Practices
 
 **Schema conventions:**

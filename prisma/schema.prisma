@@ -79,9 +79,6 @@ model Document {
   collection    String?        // Logical grouping (e.g., "help_docs", "api_reference")
   priority      Int            @default(0) // Higher priority = more relevant
 
-  // Embedding tracking
-  embeddingIds  String[]       @map("embedding_ids") // IDs in EmergentDB
-
   // Processing status
   status        DocumentStatus @default(processing)
   errorMessage  String?        @map("error_message") @db.Text
@@ -92,12 +89,36 @@ model Document {
 
   // Relations
   project       Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  chunks        DocumentChunk[]
 
   @@map("documents")
   @@index([projectId])
   @@index([projectId, enabled])
   @@index([projectId, collection])
   @@index([projectId, status])
+}
+
+// DocumentChunk model - text chunks with pgvector embeddings
+model DocumentChunk {
+  id          String   @id @default(uuid())
+  documentId  String   @map("document_id")
+  projectId   String   @map("project_id")
+
+  content     String                      @db.Text
+  embedding   Unsupported("vector(1536)")
+  collection  String?
+  chunkIndex  Int      @map("chunk_index")
+  filename    String   // Denormalized for fast retrieval
+
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@map("document_chunks")
+  @@index([documentId])
+  @@index([projectId])
+  @@index([projectId, collection])
 }
 
 // Action model - executable actions (tool use)
@@ -115,6 +136,7 @@ model Action {
   endpoint              String      @db.Text // API endpoint URL
   headers               Json        @default("{}") @db.JsonB // NOTE: Contains auth credentials - avoid storing plaintext secrets
   bodyTemplate          String?     @map("body_template") @db.Text // Request body template
+  parameters            Json        @default("[]") @db.JsonB // Structured parameter definitions for LLM tool-use
 
   // Behavior
   requiresConfirmation  Boolean     @default(false) @map("requires_confirmation")
