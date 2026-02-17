@@ -1,6 +1,6 @@
 /**
  * End-to-end pipeline test
- * Tests: DB connection → embeddings → GPT-5 chat → EmergentDB (if running)
+ * Tests: DB connection → embeddings → GPT-5 chat → pgvector search
  *
  * Run: npx tsx scripts/test-pipeline.ts
  */
@@ -70,20 +70,16 @@ async function testGPT5Chat(): Promise<boolean> {
   }
 }
 
-async function testEmergentDB(embedding: number[]): Promise<boolean> {
-  const { createEmergentDBClient } = await import('../lib/emergentdb')
+async function testPgvector(embedding: number[]): Promise<boolean> {
+  const { db } = await import('../lib/db')
   try {
-    const client = createEmergentDBClient()
-    await client.search(embedding, { projectId: 'test', topK: 3 })
-    pass('EmergentDB', 'Search succeeded')
+    const vectorLiteral = `[${embedding.join(',')}]`
+    // Test that pgvector extension and operators are available
+    await db.$queryRaw`SELECT ${vectorLiteral}::vector <=> ${vectorLiteral}::vector AS distance`
+    pass('pgvector', 'Cosine similarity operator available')
     return true
   } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error)
-    if (msg.includes('ECONNREFUSED') || msg.includes('fetch') || msg.includes('timeout') || msg.includes('Not Found')) {
-      warn('EmergentDB', 'Not running at localhost:8080 — deploy to Railway/Render for full RAG')
-    } else {
-      fail('EmergentDB', error)
-    }
+    fail('pgvector', error)
     return false
   }
 }
@@ -102,7 +98,7 @@ async function main() {
   const projectId = await testDatabase()
   const embedding = await testEmbeddings()
   await testGPT5Chat()
-  if (embedding) await testEmergentDB(embedding)
+  if (embedding) await testPgvector(embedding)
 
   console.log('')
   if (projectId) await cleanup(projectId)

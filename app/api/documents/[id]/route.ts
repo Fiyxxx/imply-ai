@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { deleteDocumentEmbeddings } from '@/lib/documents'
+import { deleteDocumentChunks } from '@/lib/documents'
 import { ImplyError, NotFoundError } from '@/lib/errors'
 import { validateProjectAccess } from '@/lib/auth'
 
@@ -53,8 +53,8 @@ export async function DELETE(
 
     await validateProjectAccess(getApiKey(req), document.projectId)
 
-    // Delete embeddings from vector DB first
-    await deleteDocumentEmbeddings(document.embeddingIds)
+    // Delete chunks from pgvector (cascades via FK, but explicit for clarity)
+    await deleteDocumentChunks(id)
 
     // Then delete document record
     await db.document.delete({ where: { id } })

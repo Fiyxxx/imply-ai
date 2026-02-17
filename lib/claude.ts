@@ -1,7 +1,7 @@
 import OpenAI from 'openai'
 import { ClaudeAPIError } from './errors'
 
-const MODEL = 'gpt-5'
+const MODEL = 'gpt-5-mini'
 const MAX_COMPLETION_TOKENS = 1024
 
 export interface ActionDescriptor {

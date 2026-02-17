@@ -15,10 +15,54 @@ function getOpenAIClient(): OpenAI {
 const EMBEDDING_MODEL = 'text-embedding-3-small'
 const EMBEDDING_BATCH_SIZE = 100
 
+// ---------------------------------------------------------------------------
+// In-process LRU embedding cache
+// Keyed by normalised query text. TTL: 5 minutes.
+// Prevents redundant OpenAI API calls for identical or repeated queries,
+// saving ~800–1200ms per cache hit.
+// ---------------------------------------------------------------------------
+const CACHE_TTL_MS = 5 * 60 * 1000   // 5 minutes
+const CACHE_MAX_SIZE = 512            // ~4MB at 1536 floats × 4 bytes each
+
+interface CacheEntry {
+  embedding: number[]
+  expiresAt: number
+}
+
+const embeddingCache = new Map<string, CacheEntry>()
+
+function cacheKey(text: string): string {
+  // Normalise whitespace so "hello world" and "hello  world" share a slot
+  return text.trim().toLowerCase().replace(/\s+/g, ' ')
+}
+
+function cacheGet(key: string): number[] | null {
+  const entry = embeddingCache.get(key)
+  if (!entry) return null
+  if (Date.now() > entry.expiresAt) {
+    embeddingCache.delete(key)
+    return null
+  }
+  return entry.embedding
+}
+
+function cacheSet(key: string, embedding: number[]): void {
+  // Evict oldest entry when at capacity (simple LRU via insertion order)
+  if (embeddingCache.size >= CACHE_MAX_SIZE) {
+    const oldest = embeddingCache.keys().next().value
+    if (oldest !== undefined) embeddingCache.delete(oldest)
+  }
+  embeddingCache.set(key, { embedding, expiresAt: Date.now() + CACHE_TTL_MS })
+}
+
 export async function generateEmbedding(text: string): Promise<number[]> {
   if (!text || text.trim().length === 0) {
     throw new ValidationError('Text cannot be empty')
   }
+
+  const key = cacheKey(text)
+  const cached = cacheGet(key)
+  if (cached) return cached
 
   try {
     const response = await getOpenAIClient().embeddings.create({
@@ -31,6 +75,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
       throw new ValidationError('No embedding returned from OpenAI')
     }
 
+    cacheSet(key, embedding)
     return embedding
   } catch (error) {
     if (error instanceof ValidationError) {

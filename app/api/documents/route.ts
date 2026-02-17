@@ -70,8 +70,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         filename,
         content: '',
         collection,
-        status: DocumentStatus.processing,
-        embeddingIds: []
+        status: DocumentStatus.processing
       }
     })
 
@@ -88,10 +87,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
       await db.document.update({
         where: { id: document.id },
-        data: {
-          embeddingIds: result.embeddingIds,
-          status: DocumentStatus.indexed
-        }
+        data: { status: DocumentStatus.indexed }
       })
 
       return NextResponse.json({
@@ -99,7 +95,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           documentId: document.id,
           filename,
           status: DocumentStatus.indexed,
-          chunks: result.chunks.length
+          chunks: result.chunkCount
         }
       }, { status: 201 })
 

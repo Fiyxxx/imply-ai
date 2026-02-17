@@ -1,6 +1,7 @@
+import { randomUUID } from 'crypto'
 import { marked } from 'marked'
+import { db } from './db'
 import { generateEmbeddings, chunkText } from './embeddings'
-import { createEmergentDBClient } from './emergentdb'
 import { ValidationError } from './errors'
 
 const ALLOWED_EXTENSIONS = new Set(['md', 'markdown', 'html', 'htm', 'txt', 'pdf'])
@@ -68,10 +69,14 @@ function stripHtml(html: string): string {
 
 export interface ProcessedDocument {
   readonly chunks: string[]
-  readonly embeddings: number[][]
-  readonly embeddingIds: string[]
+  readonly chunkCount: number
 }
 
+/**
+ * Chunk, embed, and store document chunks in Postgres via pgvector.
+ * The `embedding` column uses Unsupported("vector(1536)") so inserts
+ * must go through $executeRaw with the ::vector cast.
+ */
 export async function chunkAndEmbed(
   documentId: string,
   projectId: string,
@@ -86,8 +91,6 @@ export async function chunkAndEmbed(
   }
 
   const embeddings = await generateEmbeddings(chunks)
-  const client = createEmergentDBClient()
-  const embeddingIds: string[] = []
 
   for (let i = 0; i < chunks.length; i++) {
     const chunk = chunks[i]
@@ -95,29 +98,32 @@ export async function chunkAndEmbed(
 
     if (!chunk || !embedding) continue
 
-    const embeddingId = `${documentId}_chunk_${i}`
+    const id = randomUUID()
+    const vectorLiteral = `[${embedding.join(',')}]`
 
-    await client.insert(embeddingId, embedding, {
-      documentId,
-      projectId,
-      content: chunk,
-      filename,
-      collection,
-      chunkIndex: i
-    })
-
-    embeddingIds.push(embeddingId)
+    // Raw insert required because Prisma can't set Unsupported("vector") fields
+    await db.$executeRaw`
+      INSERT INTO document_chunks (id, document_id, project_id, content, embedding, collection, chunk_index, filename, created_at)
+      VALUES (
+        ${id},
+        ${documentId},
+        ${projectId},
+        ${chunk},
+        ${vectorLiteral}::vector,
+        ${collection},
+        ${i},
+        ${filename},
+        NOW()
+      )
+    `
   }
 
-  return { chunks, embeddings, embeddingIds }
+  return { chunks, chunkCount: chunks.length }
 }
 
-export async function deleteDocumentEmbeddings(
-  embeddingIds: readonly string[]
-): Promise<void> {
-  const client = createEmergentDBClient()
-
-  for (const id of embeddingIds) {
-    await client.delete(id)
-  }
+/**
+ * Delete all chunks for a document. Uses the ORM (no embedding access needed).
+ */
+export async function deleteDocumentChunks(documentId: string): Promise<void> {
+  await db.documentChunk.deleteMany({ where: { documentId } })
 }
