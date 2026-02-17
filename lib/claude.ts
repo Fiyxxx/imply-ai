@@ -2,7 +2,7 @@ import OpenAI from 'openai'
 import { ClaudeAPIError } from './errors'
 
 const MODEL = 'gpt-5'
-const MAX_TOKENS = 1024
+const MAX_COMPLETION_TOKENS = 1024
 
 export interface ActionDescriptor {
   readonly name: string
@@ -80,7 +80,7 @@ export class ClaudeClient {
 
       const response = await this.getClient().chat.completions.create({
         model: MODEL,
-        max_tokens: MAX_TOKENS,
+        max_completion_tokens: MAX_COMPLETION_TOKENS,
         messages
       })
 
@@ -119,7 +119,7 @@ export class ClaudeClient {
 
       const stream = await this.getClient().chat.completions.create({
         model: MODEL,
-        max_tokens: MAX_TOKENS,
+        max_completion_tokens: MAX_COMPLETION_TOKENS,
         messages,
         stream: true
       })
