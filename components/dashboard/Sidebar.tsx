@@ -1,6 +1,7 @@
 'use client'
 
 import type { JSX } from 'react'
+import Link from 'next/link'
 import { useParams, usePathname } from 'next/navigation'
 import ProjectSwitcher from '@/components/dashboard/ProjectSwitcher'
 
@@ -143,7 +144,7 @@ export default function Sidebar(): JSX.Element {
               const href = item.href(projectId)
               const isActive = pathname.includes(href)
               return (
-                <a
+                <Link
                   key={item.label}
                   href={href}
                   className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
@@ -154,7 +155,7 @@ export default function Sidebar(): JSX.Element {
                 >
                   {item.icon}
                   {item.label}
-                </a>
+                </Link>
               )
             })}
           </>

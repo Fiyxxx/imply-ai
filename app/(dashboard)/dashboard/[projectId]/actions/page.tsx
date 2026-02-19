@@ -95,7 +95,7 @@ export default function ActionsPage(): JSX.Element {
   }
 
   return (
-    <div className="max-w-4xl">
+    <div className="mx-auto max-w-2xl">
       {/* Page header */}
       <div className="flex items-center justify-between mb-6">
         <div>

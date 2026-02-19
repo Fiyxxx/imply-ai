@@ -192,7 +192,7 @@ export default function StatsPage(): JSX.Element {
   }
 
   return (
-    <div>
+    <div className="mx-auto max-w-2xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Stats</h1>
         {state.projectName !== null && (

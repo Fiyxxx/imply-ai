@@ -22,16 +22,20 @@ export default function NewProjectPage(): JSX.Element {
         body: JSON.stringify({ name }),
       })
 
-      const data: unknown = await response.json()
+      const data = await response.json() as { data?: { id: string }; error?: { message?: string } }
 
       if (!response.ok) {
-        const errorData = data as { error?: string }
-        setError(errorData.error ?? 'Failed to create project. Please try again.')
+        setError(data.error?.message ?? 'Failed to create project. Please try again.')
         return
       }
 
-      const project = data as { id: string }
-      router.push(`/dashboard/${project.id}`)
+      const projectId = data.data?.id
+      if (!projectId) {
+        setError('Failed to create project. Please try again.')
+        return
+      }
+
+      router.push(`/dashboard/${projectId}/agent`)
     } catch {
       setError('An unexpected error occurred. Please try again.')
     } finally {
