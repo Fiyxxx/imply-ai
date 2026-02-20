@@ -55,3 +55,5 @@ prisma/migrations/*_*
 
 # Local widget smoke test
 /public/test-widget.html
+
+ARCHITECTURE.md
